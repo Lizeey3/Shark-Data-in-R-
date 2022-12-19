@@ -1,0 +1,52 @@
+
+sharks.data<- read.csv(file="C:/Users/14246/Desktop/sharks from Olga correct dates.csv", 
+                       header=TRUE, sep=",")
+
+#computing lag
+sharks.data$date.lag<- c(0,head(sharks.data$date, -1))
+
+#removing first row
+sharks.data<-sharks.data[-1,] 
+
+#computing interarrival times
+sharks.data$elapsed.time<- as.numeric(as.Date(sharks.data$date)-as.Date(sharks.data$date.lag))
+
+#plotting histogram
+hist(sharks.data$elapsed.time, main="", col="pink", xlab="Interarrival Time")
+
+#binning 
+binned.sharks.data<- as.factor(ifelse(sharks.data$elapsed.time<16,"1",
+ ifelse(sharks.data$elapsed.time>=16 & sharks.data$elapsed.time<32,"2", 
+ifelse(sharks.data$elapsed.time>=32 & sharks.data$elapsed.time<48,"3",
+ ifelse(sharks.data$elapsed.time>=48 & sharks.data$elapsed.time<64,"4",
+ ifelse(sharks.data$elapsed.time>=64 & sharks.data$elapsed.time<80,"5",
+ ifelse(sharks.data$elapsed.time>=80 & sharks.data$elapsed.time<96,"6",
+ifelse(sharks.data$elapsed.time>=96 & sharks.data$elapsed.time<112,"7","8"))))))))
+
+#computing observed frequencies 
+obs<- table(binned.sharks.data)
+
+#estimating mean for exponential distribution
+mean.est<- mean(sharks.data$elapsed.time)
+
+min(sharks.data$elapsed.time)
+max(sharks.data$elapsed.time)
+
+#computing expected frequencies 
+exp<- c(1:8)
+exp[1]<- length(sharks.data$elapsed.time)* (1-exp(-16/mean.est))
+exp[2]<- length(sharks.data$elapsed.time)*(exp(-16/mean.est)-exp(-32/mean.est))
+exp[3]<- length(sharks.data$elapsed.time)*(exp(-32/mean.est)-exp(-48/mean.est))
+exp[4]<- length(sharks.data$elapsed.time)*(exp(-48/mean.est)-exp(-64/mean.est))
+exp[5]<- length(sharks.data$elapsed.time)*(exp(-64/mean.est)-exp(-80/mean.est))
+exp[6]<- length(sharks.data$elapsed.time)*(exp(-80/mean.est)-exp(-96/mean.est))
+exp[7]<- length(sharks.data$elapsed.time)*(exp(-96/mean.est)-exp(-112/mean.est))
+exp[8]<- length(sharks.data$elapsed.time)*exp(-112/mean.est)
+
+obs
+exp
+#computing chi square 
+print(chi.sq<- sum((obs-exp)^2/exp))
+
+#computing p value
+print(p.value<- 1-pchisq(chi.sq, df=6))
